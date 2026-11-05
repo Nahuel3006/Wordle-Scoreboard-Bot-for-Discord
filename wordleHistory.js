@@ -6,6 +6,20 @@ function compareSnowflakes(left, right) {
   return leftValue < rightValue ? -1 : leftValue > rightValue ? 1 : 0;
 }
 
+function resolveProcessingBoundary({ recalculate, startFromId, savedCheckpointId }) {
+  if (recalculate) {
+    return {
+      checkpointId: startFromId || null,
+      includeCheckpoint: Boolean(startFromId),
+    };
+  }
+
+  return {
+    checkpointId: savedCheckpointId || null,
+    includeCheckpoint: false,
+  };
+}
+
 async function walkMessagesBackwards(
   sourceChannel,
   checkpointId,
@@ -70,4 +84,8 @@ function createSerialQueue() {
   };
 }
 
-module.exports = { walkMessagesBackwards, createSerialQueue };
+module.exports = {
+  resolveProcessingBoundary,
+  walkMessagesBackwards,
+  createSerialQueue,
+};

@@ -54,9 +54,9 @@ Processes a channel and publishes the leaderboard in the source channel or the s
 - `canal`: channel whose history will be processed.
 - `canal2`: optional channel where the leaderboard will be posted.
 - `recalcular`: rebuilds statistics instead of continuing from the saved checkpoint.
-- `desde_id`: inclusive ID of the first message to count.
+- `desde_id`: inclusive ID of the first message to count when recalculating; ignored otherwise.
 
-To rebuild exact result counts from a specific point, use `recalcular: true` with `desde_id`. This replaces the saved statistics with data from that message through the most recent message. If `desde_id` is provided without recalculation, messages are added to the existing totals; do not use it to process a range that has already been counted.
+With `recalcular: false`, the bot ignores `desde_id` and resumes after the saved checkpoint. If no checkpoint exists, it reads all available history. With `recalcular: true`, it clears the current aggregates and reads from the inclusive `desde_id`, or from the oldest available message when no ID is provided.
 
 The local JSON file is written after history processing completes. If processing fails before then, the previous file is preserved.
 

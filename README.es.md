@@ -54,9 +54,9 @@ Revisa un canal y publica la clasificación en el canal de origen o en el canal 
 - `canal`: canal cuyo historial se procesa.
 - `canal2`: canal opcional donde publicar el ranking.
 - `recalcular`: reconstruye las estadísticas en vez de continuar desde el checkpoint guardado.
-- `desde_id`: ID inclusivo del primer mensaje que se debe contar.
+- `desde_id`: ID inclusivo del primer mensaje al recalcular; se ignora en modo incremental.
 
-Para obtener conteos exactos de cada resultado desde un punto concreto, usa `recalcular: true` junto con `desde_id`. El recálculo reemplaza las estadísticas guardadas por las del intervalo desde ese mensaje hasta el más reciente. Si se proporciona `desde_id` sin recalcular, los mensajes se suman a las estadísticas actuales; no lo uses para volver a procesar un intervalo que ya fue contabilizado.
+Con `recalcular: false`, el bot ignora `desde_id` y continúa después del checkpoint guardado. Si no existe un checkpoint, lee todo el historial disponible. Con `recalcular: true`, limpia los acumulados actuales y empieza en el `desde_id` inclusivo, o en el mensaje más antiguo disponible si no se proporciona un ID.
 
 El JSON local se escribe al terminar el recorrido. Si el proceso falla antes, conserva el archivo anterior.
 

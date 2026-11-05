@@ -1,6 +1,10 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { walkMessagesBackwards, createSerialQueue } = require("./wordleHistory");
+const {
+  resolveProcessingBoundary,
+  walkMessagesBackwards,
+  createSerialQueue,
+} = require("./wordleHistory");
 
 function createChannel(totalMessages) {
   const messages = Array.from({ length: totalMessages }, (_, index) => ({
@@ -19,6 +23,39 @@ function createChannel(totalMessages) {
     },
   };
 }
+
+test("incremental processing ignores desde_id and resumes after the saved checkpoint", () => {
+  assert.deepEqual(
+    resolveProcessingBoundary({
+      recalculate: false,
+      startFromId: "200",
+      savedCheckpointId: "150",
+    }),
+    { checkpointId: "150", includeCheckpoint: false },
+  );
+});
+
+test("recalculation uses desde_id as an inclusive boundary", () => {
+  assert.deepEqual(
+    resolveProcessingBoundary({
+      recalculate: true,
+      startFromId: "200",
+      savedCheckpointId: "150",
+    }),
+    { checkpointId: "200", includeCheckpoint: true },
+  );
+});
+
+test("recalculation without desde_id reads all available history", () => {
+  assert.deepEqual(
+    resolveProcessingBoundary({
+      recalculate: true,
+      startFromId: null,
+      savedCheckpointId: "150",
+    }),
+    { checkpointId: null, includeCheckpoint: false },
+  );
+});
 
 test("walks all pages once with chronological order within each page", async () => {
   const visited = [];

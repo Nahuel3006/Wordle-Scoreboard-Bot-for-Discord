@@ -11,7 +11,11 @@ const {
 const fs = require("fs");
 const path = require("path");
 const { parseWordleMessage } = require("./wordleParser");
-const { walkMessagesBackwards, createSerialQueue } = require("./wordleHistory");
+const {
+  resolveProcessingBoundary,
+  walkMessagesBackwards,
+  createSerialQueue,
+} = require("./wordleHistory");
 const {
   createUserStats,
   addResultToUserStats,
@@ -59,7 +63,11 @@ async function processMessages(
     console.log("♻️ [RECALCULATE] Statistics cleared.");
   }
 
-  const checkpointId = startFromId || db.lastProcessedId;
+  const { checkpointId, includeCheckpoint } = resolveProcessingBoundary({
+    recalculate,
+    startFromId,
+    savedCheckpointId: db.lastProcessedId,
+  });
   let totalProcessedMessages = 0;
   let totalParsedResults = 0;
 
@@ -100,7 +108,7 @@ async function processMessages(
         `[BATCH #${batch.batchCount}] fetched=${batch.fetchedCount}, candidates=${candidates.length}, parsed_messages=${parsedMessageCount}, results=${parsedResultCount}, IDs=${batch.oldestId}-${batch.newestId}`,
       );
     },
-    Boolean(startFromId || recalculate),
+    includeCheckpoint,
   );
 
   if (traversal.newestMessageId) {
@@ -131,10 +139,10 @@ async function processMessages(
     const rows = sortedUsers.map((user) => {
       const outcomes = user.outcomeCountsComplete
         ? ["1/6", "2/6", "3/6", "4/6", "5/6", "6/6", "X/6"]
-            .map((bucket) => `${user.outcomeCounts[bucket]} en ${bucket}`)
+          .map((bucket) => `${user.outcomeCounts[bucket]} in ${bucket}`)
             .join(", ")
         : ["1/6", "2/6", "3/6", "4/6", "5/6", "6/6", "X/6"]
-            .map((bucket) => `${user.outcomeCounts[bucket] ?? "?"} en ${bucket}`)
+          .map((bucket) => `${user.outcomeCounts[bucket] ?? "?"} in ${bucket}`)
             .join(", ");
 
       return `**#${user.rank}** ${user.user} - results: ${outcomes}; points: **${user.totalPoints}**`;
@@ -197,7 +205,7 @@ const commands = [
       opt
         .setName("desde_id")
         .setDescription(
-          "ID of the first message to include (right-click -> Copy Message ID)",
+          "First message ID to include when recalculating; ignored otherwise",
         )
         .setRequired(false),
     ),

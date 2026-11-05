@@ -1,22 +1,22 @@
 # Wordle Scoreboard Bot for Discord
 
-[English](README.en.md)
+[Español](README.es.md)
 
-Bot de Discord para recopilar resultados compartidos de Wordle, mantener estadísticas por jugador y publicar una clasificación por puntos.
+A Discord bot that collects shared Wordle results, tracks player statistics, and publishes a points leaderboard.
 
-## Funciones
+## Features
 
-- Lee mensajes de resultados en el historial de un canal, en páginas de hasta 100 mensajes.
-- Reconoce varios resultados en una misma línea, menciones de Discord y nombres escritos como texto.
-- Acumula partidas, victorias, intentos, puntos y conteos de `1/6` a `X/6`.
-- Fusiona nombres de usuario con IDs de Discord cuando puede asociarlos sin ambigüedad.
-- Ordena por puntos acumulados; los empates comparten posición.
-- Puede recalcular el historial desde un mensaje indicado o actualizarse desde el último checkpoint.
-- Puede vigilar un canal y publicar resultados al detectar mensajes nuevos de Wordle.
+- Reads result messages from a channel's history in pages of up to 100 messages.
+- Recognizes multiple results on one line, Discord mentions, and plain-text usernames.
+- Tracks games, wins, attempts, points, and counts from `1/6` through `X/6`.
+- Merges usernames with Discord IDs when they can be matched unambiguously.
+- Ranks players by total points; tied totals share a position.
+- Recalculates history from a specified message or continues from the saved checkpoint.
+- Watches a channel and publishes updated results when new Wordle messages arrive.
 
-## Puntuación
+## Scoring
 
-| Resultado | Puntos |
+| Result | Points |
 | --- | ---: |
 | `1/6` | 6 |
 | `2/6` | 5 |
@@ -26,52 +26,52 @@ Bot de Discord para recopilar resultados compartidos de Wordle, mantener estadí
 | `6/6` | 1 |
 | `X/6` | 0 |
 
-El ranking usa el total de puntos. Cada fila también muestra cuántas veces obtuvo cada resultado.
+The leaderboard uses total points. Each row also shows how many times the player achieved each result.
 
-## Requisitos
+## Requirements
 
-- Node.js 18 o posterior.
-- Una aplicación y un bot creados en el [Discord Developer Portal](https://discord.com/developers/applications).
-- Acceso de lectura al historial del canal de origen y permiso para enviar mensajes en el canal de salida.
-- El intent **Message Content** habilitado para el bot en el Developer Portal.
+- Node.js 18 or later.
+- A Discord application and bot created in the [Discord Developer Portal](https://discord.com/developers/applications).
+- Permission to read the source channel's history and send messages in the output channel.
+- The **Message Content** intent enabled for the bot in the Developer Portal.
 
-## Configuración
+## Setup
 
-1. Instala dependencias con `npm ci`.
-2. Copia `.env.example` como `.env`.
-3. Configura `DISCORD_TOKEN` y `CLIENT_ID` en `.env`.
-4. Invita el bot al servidor con los scopes `bot` y `applications.commands`, y los permisos necesarios para ver canales, leer historial y enviar mensajes.
-5. Inicia el bot con `node index.js`.
+1. Install dependencies with `npm ci`.
+2. Copy `.env.example` to `.env`.
+3. Set `DISCORD_TOKEN` and `CLIENT_ID` in `.env`.
+4. Invite the bot with the `bot` and `applications.commands` scopes and the permissions needed to view channels, read message history, and send messages.
+5. Start the bot with `node index.js`.
 
-No publiques el archivo `.env` ni compartas el token del bot.
+Do not publish `.env` or share your bot token.
 
-## Comandos
+## Commands
 
 ### `/obtenerresultados`
 
-Revisa un canal y publica la clasificación en el canal de origen o en el canal de salida indicado.
+Processes a channel and publishes the leaderboard in the source channel or the specified output channel.
 
-- `canal`: canal cuyo historial se procesa.
-- `canal2`: canal opcional donde publicar el ranking.
-- `recalcular`: reconstruye las estadísticas en vez de continuar desde el checkpoint guardado.
-- `desde_id`: ID inclusivo del primer mensaje que se debe contar.
+- `canal`: channel whose history will be processed.
+- `canal2`: optional channel where the leaderboard will be posted.
+- `recalcular`: rebuilds statistics instead of continuing from the saved checkpoint.
+- `desde_id`: inclusive ID of the first message to count.
 
-Para obtener conteos exactos de cada resultado desde un punto concreto, usa `recalcular: true` junto con `desde_id`. El recálculo reemplaza las estadísticas guardadas por las del intervalo desde ese mensaje hasta el más reciente. Si se proporciona `desde_id` sin recalcular, los mensajes se suman a las estadísticas actuales; no lo uses para volver a procesar un intervalo que ya fue contabilizado.
+To rebuild exact result counts from a specific point, use `recalcular: true` with `desde_id`. This replaces the saved statistics with data from that message through the most recent message. If `desde_id` is provided without recalculation, messages are added to the existing totals; do not use it to process a range that has already been counted.
 
-El JSON local se escribe al terminar el recorrido. Si el proceso falla antes, conserva el archivo anterior.
+The local JSON file is written after history processing completes. If processing fails before then, the previous file is preserved.
 
 ### `/rastrear`
 
-Guarda un canal de origen y otro de salida. Cuando llega un mensaje nuevo que parece ser un resultado de Wordle, el bot actualiza las estadísticas y publica la clasificación.
+Stores a source channel and an output channel. When a new message that looks like a Wordle result arrives, the bot updates the statistics and publishes the leaderboard.
 
-## Datos y pruebas
+## Data and tests
 
-Las estadísticas y el checkpoint se guardan en `wordle_stats.json`. Ese archivo contiene datos mutables e IDs de usuarios, por lo que está excluido de Git. Los conteos detallados no se pueden reconstruir desde agregados antiguos; se completan al recalcular el historial.
+Statistics and the checkpoint are stored in `wordle_stats.json`. This file contains mutable data and user IDs, so it is excluded from Git. Detailed result counts cannot be recovered from older aggregate totals; they are populated by recalculating the message history.
 
-Ejecuta la suite local con:
+Run the local test suite with:
 
 ```sh
 npm test
 ```
 
-Las pruebas cubren el parser, la paginación, la migración de estadísticas, las alias, el ranking y los límites de los embeds.
+Tests cover parsing, pagination, statistics migration, aliases, ranking, and embed limits.

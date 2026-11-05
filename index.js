@@ -23,7 +23,7 @@ const {
 
 const DATA_FILE = path.join(__dirname, "wordle_stats.json");
 
-// Cargar o inicializar la base de datos local
+// Cargar o inicializar las estadísticas y opciones guardadas localmente.
 function loadData() {
   if (!fs.existsSync(DATA_FILE)) {
     return {
@@ -113,7 +113,7 @@ async function processMessages(
     `✅ [PROCESO FINALIZADO] Mensajes parseados: ${totalProcessedMessages}; resultados individuales: ${totalParsedResults}; mensajes descargados: ${traversal.totalFetched}.`,
   );
 
-  // Generar Embed con la tabla de posiciones y etiquetas reales
+  // Construir la publicación de resultados y la clasificación.
   const embed = new EmbedBuilder()
     .setTitle("🏆 Tabla de Posiciones - Wordle Group")
     .setColor(0x538d4e)
@@ -161,7 +161,7 @@ async function processMessages(
   await targetChannel.send({ embeds: [embed] });
 }
 
-// Configuración del Cliente Discord
+// Crear el cliente con acceso a los mensajes de los servidores.
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -170,7 +170,7 @@ const client = new Client({
   ],
 });
 
-// Definición de comandos Slash con el parámetro desde_id
+// Registrar los comandos disponibles y sus opciones.
 const commands = [
   new SlashCommandBuilder()
     .setName("obtenerresultados")
@@ -234,7 +234,7 @@ client.once("clientReady", async () => {
   }
 });
 
-// Manejador de Comandos Slash
+// Atender las solicitudes de los comandos slash.
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
@@ -281,7 +281,7 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 
-// Listener para el rastreo automático en tiempo real
+// Actualizar las estadísticas cuando llega un resultado al canal vigilado.
 client.on("messageCreate", async (message) => {
   const db = loadData();
 

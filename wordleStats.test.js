@@ -28,17 +28,17 @@ function legacyStats(totalScore, gamesPlayed, wins) {
 test("merges text usernames with Discord mention IDs", () => {
   const aliases = {};
   const users = new Map([
-    ["123", { id: "123", username: "Jin", globalName: "Jin" }],
+    ["123", { id: "123", username: "PlayerA", globalName: "PlayerA" }],
   ]);
   const members = new Map([
-    ["123", { displayName: "Jin" }],
+    ["123", { displayName: "PlayerA" }],
   ]);
 
   registerMentionAliases(aliases, { mentions: { users, members } });
   const merged = mergeUserStats(
     {
       "<@!123>": { totalScore: 30, gamesPlayed: 10, wins: 9 },
-      "@Jin": { totalScore: 12, gamesPlayed: 4, wins: 4 },
+      "@PlayerA": { totalScore: 12, gamesPlayed: 4, wins: 4 },
       "@SomeoneElse": { totalScore: 5, gamesPlayed: 1, wins: 1 },
     },
     aliases,
@@ -53,40 +53,36 @@ test("merges text usernames with Discord mention IDs", () => {
 test("does not merge ambiguous aliases shared by different users", () => {
   const aliases = {};
   const users = new Map([
-    ["123", { id: "123", username: "Jin", globalName: "Jin" }],
-    ["456", { id: "456", username: "Other", globalName: "Jin" }],
+    ["123", { id: "123", username: "PlayerA", globalName: "PlayerA" }],
+    ["456", { id: "456", username: "PlayerB", globalName: "PlayerA" }],
   ]);
 
   registerMentionAliases(aliases, { mentions: { users } });
   const merged = mergeUserStats(
-    { "@Jin": { totalScore: 4, gamesPlayed: 1, wins: 1 } },
+    { "@PlayerA": { totalScore: 4, gamesPlayed: 1, wins: 1 } },
     aliases,
   );
 
   assert.deepEqual(merged, {
-    "@Jin": legacyStats(4, 1, 1),
+    "@PlayerA": legacyStats(4, 1, 1),
   });
 });
 
-test("merges confirmed Vrs aliases under the configured Discord ID", () => {
+test("merges configured text aliases under a Discord ID", () => {
   const merged = mergeUserStats(
     {
-      "<@161037121472167936>": {
-        totalScore: 1923,
-        gamesPlayed: 397,
-        wins: 350,
-      },
-      "@Vrs": { totalScore: 430, gamesPlayed: 90, wins: 76 },
-      "@Vrs-": { totalScore: 99, gamesPlayed: 22, wins: 22 },
+      "<@123456789012345678>": { totalScore: 21, gamesPlayed: 5, wins: 4 },
+      "@PlayerV": { totalScore: 8, gamesPlayed: 2, wins: 2 },
+      "@PlayerV-": { totalScore: 7, gamesPlayed: 2, wins: 1 },
     },
     {
-      vrs: "161037121472167936",
-      "vrs-": "161037121472167936",
+      playerv: "123456789012345678",
+      "playerv-": "123456789012345678",
     },
   );
 
   assert.deepEqual(merged, {
-    "<@161037121472167936>": legacyStats(2452, 509, 448),
+    "<@123456789012345678>": legacyStats(36, 9, 7),
   });
 });
 

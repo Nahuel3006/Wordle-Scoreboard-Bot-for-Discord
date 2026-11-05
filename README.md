@@ -1,4 +1,4 @@
-# Yordler
+# Wordle Scoreboard Bot for Discord
 
 [English](README.en.md)
 

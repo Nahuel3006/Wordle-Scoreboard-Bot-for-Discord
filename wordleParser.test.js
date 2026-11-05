@@ -3,23 +3,23 @@ const assert = require("node:assert/strict");
 const { parseWordleMessage } = require("./wordleParser");
 
 test("parses an emoji-prefixed result with Unicode usernames", () => {
-  const parsed = parseWordleMessage("👑 4/6: @Sköll @Jin");
+  const parsed = parseWordleMessage("👑 4/6: @PlayerA @PlayerB");
 
   assert.deepEqual(parsed, [
-    { user: "@Sköll", score: 4, attempts: 4, outcome: "4/6", points: 3, isWin: true },
-    { user: "@Jin", score: 4, attempts: 4, outcome: "4/6", points: 3, isWin: true },
+    { user: "@PlayerA", score: 4, attempts: 4, outcome: "4/6", points: 3, isWin: true },
+    { user: "@PlayerB", score: 4, attempts: 4, outcome: "4/6", points: 3, isWin: true },
   ]);
 });
 
 test("parses multiple results on one line", () => {
   const parsed = parseWordleMessage(
-    "Here are yesterday's results: 👑 4/6: @Jin 5/6: @Vrs- 6/6: @Sköll",
+    "Here are yesterday's results: 👑 4/6: @PlayerA 5/6: @PlayerB 6/6: @PlayerC",
   );
 
   assert.deepEqual(parsed, [
-    { user: "@Jin", score: 4, attempts: 4, outcome: "4/6", points: 3, isWin: true },
-    { user: "@Vrs-", score: 5, attempts: 5, outcome: "5/6", points: 2, isWin: true },
-    { user: "@Sköll", score: 6, attempts: 6, outcome: "6/6", points: 1, isWin: true },
+    { user: "@PlayerA", score: 4, attempts: 4, outcome: "4/6", points: 3, isWin: true },
+    { user: "@PlayerB", score: 5, attempts: 5, outcome: "5/6", points: 2, isWin: true },
+    { user: "@PlayerC", score: 6, attempts: 6, outcome: "6/6", points: 1, isWin: true },
   ]);
 });
 
@@ -42,6 +42,6 @@ test("maps every result to points and parses losses with Discord mention IDs", (
 });
 
 test("ignores invalid scores and unrelated text", () => {
-  assert.deepEqual(parseWordleMessage("7/6: @Jin |/6: @Sköll"), []);
+  assert.deepEqual(parseWordleMessage("7/6: @PlayerA |/6: @PlayerB"), []);
   assert.deepEqual(parseWordleMessage(null), []);
 });

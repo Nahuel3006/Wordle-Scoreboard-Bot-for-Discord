@@ -56,7 +56,7 @@ async function processMessages(
   if (recalculate) {
     db.users = {};
     db.lastProcessedId = null;
-    console.log("♻️ [RECALCULAR] Base de datos limpiada.");
+    console.log("♻️ [RECALCULATE] Statistics cleared.");
   }
 
   const checkpointId = startFromId || db.lastProcessedId;
@@ -64,7 +64,7 @@ async function processMessages(
   let totalParsedResults = 0;
 
   console.log(
-    `🔍 [INICIO] Leyendo canal: #${sourceChannel.name} | Desde ID: ${checkpointId || "Inicio"}`,
+    `🔍 [START] Reading channel: #${sourceChannel.name} | Starting from ID: ${checkpointId || "oldest available"}`,
   );
 
   const traversal = await walkMessagesBackwards(
@@ -97,7 +97,7 @@ async function processMessages(
       totalProcessedMessages += parsedMessageCount;
       totalParsedResults += parsedResultCount;
       console.log(
-        `[LOTE #${batch.batchCount}] descargados=${batch.fetchedCount}, candidatos=${candidates.length}, mensajes_parseados=${parsedMessageCount}, resultados=${parsedResultCount}, IDs=${batch.oldestId}-${batch.newestId}`,
+        `[BATCH #${batch.batchCount}] fetched=${batch.fetchedCount}, candidates=${candidates.length}, parsed_messages=${parsedMessageCount}, results=${parsedResultCount}, IDs=${batch.oldestId}-${batch.newestId}`,
       );
     },
     Boolean(startFromId || recalculate),
@@ -110,22 +110,22 @@ async function processMessages(
   saveData(db);
 
   console.log(
-    `✅ [PROCESO FINALIZADO] Mensajes parseados: ${totalProcessedMessages}; resultados individuales: ${totalParsedResults}; mensajes descargados: ${traversal.totalFetched}.`,
+    `✅ [PROCESS COMPLETE] Parsed messages: ${totalProcessedMessages}; individual results: ${totalParsedResults}; messages fetched: ${traversal.totalFetched}.`,
   );
 
   // Construir la publicación de resultados y la clasificación.
   const embed = new EmbedBuilder()
-    .setTitle("🏆 Tabla de Posiciones - Wordle Group")
+    .setTitle("🏆 Wordle Scoreboard - Results")
     .setColor(0x538d4e)
-    .setDescription(`*Estadísticas actualizadas correctamente.*`)
+    .setDescription("*Statistics updated successfully.*")
     .setTimestamp();
 
   const sortedUsers = calculateRankings(db.users);
 
   if (sortedUsers.length === 0) {
     embed.addFields({
-      name: "Estado",
-      value: "No se encontraron resultados válidos.",
+      name: "Status",
+      value: "No valid results were found.",
     });
   } else {
     const rows = sortedUsers.map((user) => {
@@ -137,18 +137,18 @@ async function processMessages(
             .map((bucket) => `${user.outcomeCounts[bucket] ?? "?"} en ${bucket}`)
             .join(", ");
 
-      return `**#${user.rank}** ${user.user} - resultados: ${outcomes}; puntos: **${user.totalPoints}**`;
+      return `**#${user.rank}** ${user.user} - results: ${outcomes}; points: **${user.totalPoints}**`;
     });
     const rankingChunks = chunkLeaderboardRows(rows);
 
     const rankingEmbeds = rankingChunks.map((chunk, index) => {
       const pageTitle = rankingChunks.length > 1
-        ? `🏆 Tabla de Puntos - Wordle Group (${index + 1}/${rankingChunks.length})`
-        : "🏆 Tabla de Puntos - Wordle Group";
+        ? `🏆 Wordle Scoreboard Bot for Discord (${index + 1}/${rankingChunks.length})`
+        : "🏆 Wordle Scoreboard Bot for Discord";
       return new EmbedBuilder()
         .setTitle(pageTitle)
         .setColor(0x538d4e)
-        .setDescription("Ordenado por puntos acumulados. Los empates comparten puesto.")
+        .setDescription("Ranked by total points. Tied scores share the same position.")
         .addFields({ name: "Ranking", value: chunk });
     });
 
@@ -174,63 +174,63 @@ const client = new Client({
 const commands = [
   new SlashCommandBuilder()
     .setName("obtenerresultados")
-    .setDescription("Calcula y publica las estadísticas de Wordle")
+    .setDescription("Calculate and publish Wordle statistics")
     .addChannelOption((opt) =>
       opt
         .setName("canal")
-        .setDescription("Canal de origen de los mensajes")
+        .setDescription("Source channel whose messages should be processed")
         .setRequired(true),
     )
     .addChannelOption((opt) =>
       opt
         .setName("canal2")
-        .setDescription("Canal donde publicar (por defecto el de origen)")
+        .setDescription("Channel for the leaderboard (defaults to the source channel)")
         .setRequired(false),
     )
     .addBooleanOption((opt) =>
       opt
         .setName("recalcular")
-        .setDescription("Recalcular todo desde cero (default: false)")
+        .setDescription("Rebuild statistics from scratch (default: false)")
         .setRequired(false),
     )
     .addStringOption((opt) =>
       opt
         .setName("desde_id")
         .setDescription(
-          "ID del primer mensaje que se incluirá (clic derecho -> Copiar ID)",
+          "ID of the first message to include (right-click -> Copy Message ID)",
         )
         .setRequired(false),
     ),
   new SlashCommandBuilder()
     .setName("rastrear")
     .setDescription(
-      "Configura el rastreo automático para cuando llegue un nuevo mensaje de Wordle",
+      "Configure automatic tracking for new Wordle results",
     )
     .addChannelOption((opt) =>
       opt
         .setName("canal")
-        .setDescription("Canal origen donde publica el bot de Wordle")
+        .setDescription("Source channel where the Wordle bot posts results")
         .setRequired(true),
     )
     .addChannelOption((opt) =>
       opt
         .setName("canal2")
-        .setDescription("Canal donde volcar los resultados")
+        .setDescription("Channel where the leaderboard will be posted")
         .setRequired(true),
     ),
 ];
 
 client.once("clientReady", async () => {
-  console.log(`Bot listo como ${client.user.tag}`);
+  console.log(`Bot is ready as ${client.user.tag}`);
 
   const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_TOKEN);
   try {
     await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), {
       body: commands.map((c) => c.toJSON()),
     });
-    console.log("Comandos Slash registrados correctamente.");
+    console.log("Slash commands registered successfully.");
   } catch (err) {
-    console.error("Error al registrar comandos:", err);
+    console.error("Failed to register slash commands:", err);
   }
 });
 
@@ -253,12 +253,12 @@ client.on("interactionCreate", async (interaction) => {
         processMessages(canalOrigen, canalDestino, recalcular, desdeId),
       );
       await interaction.editReply(
-        `✅ Resultados procesados y volcados en ${canalDestino}.`,
+        `✅ Results processed and posted in ${canalDestino}.`,
       );
     } catch (err) {
       console.error(err);
       await interaction.editReply(
-        `❌ Ocurrió un error al procesar: ${err.message}`,
+        `❌ An error occurred while processing results: ${err.message}`,
       );
     }
   }
@@ -275,7 +275,7 @@ client.on("interactionCreate", async (interaction) => {
     });
 
     await interaction.reply({
-      content: `📌 Rastreo automático activado. Escuchando en ${canalOrigen} y volcando en ${canalDestino}.`,
+      content: `📌 Automatic tracking enabled. Listening in ${canalOrigen} and posting results in ${canalDestino}.`,
       flags: [MessageFlags.Ephemeral],
     });
   }
@@ -295,13 +295,13 @@ client.on("messageCreate", async (message) => {
     try {
       const targetChannel = await client.channels.fetch(db.autoOutputChannelId);
       if (targetChannel) {
-        console.log(`⚡ [TIEMPO REAL] Nuevo mensaje de Wordle detectado.`);
+        console.log("⚡ [LIVE] New Wordle result message detected.");
         await enqueueProcessing(() =>
           processMessages(message.channel, targetChannel, false),
         );
       }
     } catch (err) {
-      console.error("Error en el rastreo automático de Wordle:", err);
+      console.error("Automatic Wordle tracking failed:", err);
     }
   }
 });
